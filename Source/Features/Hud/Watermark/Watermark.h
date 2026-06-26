@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <Windows.h>
 
 #include <CS2/Classes/Color.h>
 #include <CS2/Classes/Entities/C_BaseEntity.h>
@@ -19,19 +20,6 @@
 
 #include "WatermarkConfigVariables.h"
 #include "WatermarkState.h"
-
-struct WatermarkSystemTime {
-    unsigned short year;
-    unsigned short month;
-    unsigned short dayOfWeek;
-    unsigned short day;
-    unsigned short hour;
-    unsigned short minute;
-    unsigned short second;
-    unsigned short milliseconds;
-};
-
-extern "C" __declspec(dllimport) void __stdcall GetLocalTime(WatermarkSystemTime* systemTime);
 
 template <typename HookContext>
 class Watermark {
@@ -167,14 +155,14 @@ private:
 
     void updateTime() const noexcept
     {
-        WatermarkSystemTime localTime{};
+        SYSTEMTIME localTime{};
         GetLocalTime(&localTime);
 
         StringBuilderStorage<8> storage;
         auto builder = storage.builder();
-        putTwoDigits(builder, localTime.hour);
+        putTwoDigits(builder, localTime.wHour);
         builder.put(':');
-        putTwoDigits(builder, localTime.minute);
+        putTwoDigits(builder, localTime.wMinute);
         setLabelText(state().timeTextPanelHandle, builder.cstring());
     }
 
