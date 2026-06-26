@@ -16,6 +16,7 @@
 #include <GameClient/Panorama/PanoramaUiEngine.h>
 #include <GameClient/Panorama/PanelHandle.h>
 
+#include "WatermarkConfigVariables.h"
 #include "WatermarkState.h"
 
 template <typename HookContext>
@@ -31,6 +32,11 @@ public:
         auto&& panel = containerPanel();
         if (!panel)
             return;
+
+        if (!GET_CONFIG_VAR(HudWatermarkEnabled)) {
+            panel.hide();
+            return;
+        }
 
         panel.show();
         updateFps();
@@ -117,7 +123,7 @@ private:
     {
         constexpr auto kControllerPingOffset = 0x828;
         auto&& localController = hookContext.localPlayerController();
-        const auto controllerEntity = localController.baseEntity().rawPointer();
+        const auto controllerEntity = static_cast<cs2::C_BaseEntity*>(localController.baseEntity());
         if (!controllerEntity) {
             setLabelText(state().pingTextPanelHandle, "0 ms");
             return;
