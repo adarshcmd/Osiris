@@ -1,6 +1,8 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdio>
+#include <cstdint>
 #include <ctime>
 
 #include <CS2/Classes/Color.h>
@@ -51,7 +53,7 @@ private:
             createSeparatorPanel(panel);
             state().fpsTextPanelHandle = createTextPanel(panel, "0 FPS", cs2::Color{235, 235, 235}).getHandle();
             createSeparatorPanel(panel);
-            state().pingTextPanelHandle = createTextPanel(panel, "-- ms", cs2::Color{235, 235, 235}).getHandle();
+            state().pingTextPanelHandle = createTextPanel(panel, "0 ms", cs2::Color{235, 235, 235}).getHandle();
             createSeparatorPanel(panel);
             state().timeTextPanelHandle = createTextPanel(panel, "00:00", cs2::Color{235, 235, 235}).getHandle();
             return panel;
@@ -113,7 +115,18 @@ private:
 
     void updatePing() const noexcept
     {
-        setLabelText(state().pingTextPanelHandle, "-- ms");
+        constexpr auto kControllerPingOffset = 0x828;
+        auto&& localController = hookContext.localPlayerController();
+        const auto controllerEntity = localController.baseEntity().rawPointer();
+        if (!controllerEntity) {
+            setLabelText(state().pingTextPanelHandle, "0 ms");
+            return;
+        }
+
+        const auto ping = *reinterpret_cast<const std::uint32_t*>(reinterpret_cast<const std::byte*>(controllerEntity) + kControllerPingOffset);
+        char text[16];
+        std::snprintf(text, sizeof(text), "%u ms", ping <= 999 ? ping : 0);
+        setLabelText(state().pingTextPanelHandle, text);
     }
 
     void updateTime() const noexcept
