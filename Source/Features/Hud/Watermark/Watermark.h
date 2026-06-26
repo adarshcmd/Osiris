@@ -16,6 +16,7 @@
 #include <GameClient/Panorama/PanoramaLabel.h>
 #include <GameClient/Panorama/PanoramaUiEngine.h>
 #include <GameClient/Panorama/PanelHandle.h>
+#include <Utils/Lvalue.h>
 
 #include "WatermarkConfigVariables.h"
 #include "WatermarkState.h"
@@ -63,7 +64,7 @@ private:
             state().pingTextPanelHandle = createTextPanel(panel, "0 ms", cs2::Color{235, 235, 235}).getHandle();
             createSeparatorPanel(panel);
             state().timeTextPanelHandle = createTextPanel(panel, "00:00", cs2::Color{235, 235, 235}).getHandle();
-            return panel;
+            return utils::lvalue<decltype(panel)>(panel);
         });
     }
 
@@ -80,7 +81,7 @@ private:
         });
     }
 
-    [[nodiscard]] decltype(auto) createTextPanel(auto&& parentPanel, const char* text, cs2::Color color) const noexcept
+    void createTextPanel(auto&& parentPanel, const char* text, cs2::Color color) const noexcept
     {
         auto&& label = hookContext.panelFactory().createLabelPanel(parentPanel).uiPanel();
         label.setHeight(cs2::CUILength::pixels(24));
@@ -98,16 +99,51 @@ private:
             .color = cs2::Color{0, 0, 0, 180}
         });
         label.clientPanel().template as<PanoramaLabel>().setText(text);
-        return label;
+    }
+
+    [[nodiscard]] cs2::PanelHandle createTextPanelAndGetHandle(auto&& parentPanel, const char* text, cs2::Color color) const noexcept
+    {
+        auto&& label = hookContext.panelFactory().createLabelPanel(parentPanel).uiPanel();
+        label.setHeight(cs2::CUILength::pixels(24));
+        label.setFont({
+            .fontFamily = "Stratum2, 'Arial Unicode MS'",
+            .fontSize = 18,
+            .fontWeight = cs2::k_EFontWeightMedium
+        });
+        label.setColor(color);
+        label.setTextShadow({
+            .horizontalOffset = cs2::CUILength::pixels(1),
+            .verticalOffset = cs2::CUILength::pixels(1),
+            .blurRadius = cs2::CUILength::pixels(2),
+            .strength = 2.0f,
+            .color = cs2::Color{0, 0, 0, 180}
+        });
+        label.clientPanel().template as<PanoramaLabel>().setText(text);
+        return label.getHandle();
     }
 
     void createSeparatorPanel(auto&& parentPanel) const noexcept
     {
-        auto&& label = createTextPanel(parentPanel, "|", cs2::Color{0, 102, 255, 150});
+        auto&& label = hookContext.panelFactory().createLabelPanel(parentPanel).uiPanel();
+        label.setHeight(cs2::CUILength::pixels(24));
+        label.setFont({
+            .fontFamily = "Stratum2, 'Arial Unicode MS'",
+            .fontSize = 18,
+            .fontWeight = cs2::k_EFontWeightMedium
+        });
+        label.setColor(cs2::Color{0, 102, 255, 150});
+        label.setTextShadow({
+            .horizontalOffset = cs2::CUILength::pixels(1),
+            .verticalOffset = cs2::CUILength::pixels(1),
+            .blurRadius = cs2::CUILength::pixels(2),
+            .strength = 2.0f,
+            .color = cs2::Color{0, 0, 0, 180}
+        });
         label.setMargin({
             .marginLeft = cs2::CUILength::pixels(13),
             .marginRight = cs2::CUILength::pixels(13)
         });
+        label.clientPanel().template as<PanoramaLabel>().setText("|");
     }
 
     void updateFps() const noexcept
