@@ -6,6 +6,7 @@
 #include <ctime>
 
 #include <CS2/Classes/Color.h>
+#include <CS2/Classes/Entities/C_BaseEntity.h>
 #include <CS2/Panorama/CUILength.h>
 #include <CS2/Panorama/StyleEnums.h>
 #include <GameClient/Panorama/PanelAlignmentParams.h>
@@ -53,7 +54,7 @@ private:
     [[nodiscard]] decltype(auto) containerPanel() const noexcept
     {
         return hookContext.template make<PanelHandle>(state().containerPanelHandle).getOrInit([this] {
-            auto&& panel = hookContext.panelFactory().createPanel(hookContext.hud().panel(), "OsirisWatermark").uiPanel();
+            auto&& panel = hookContext.panelFactory().createPanel(hookContext.hud().scoreAndTimeAndBomb(), "OsirisWatermark").uiPanel();
             setupContainerPanel(panel);
             createTextPanel(panel, "Osiris", cs2::Color{0, 102, 255});
             createSeparatorPanel(panel);
