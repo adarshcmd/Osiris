@@ -59,11 +59,11 @@ private:
             setupContainerPanel(panel);
             createTextPanel(panel, "Osiris", cs2::Color{0, 102, 255});
             createSeparatorPanel(panel);
-            state().fpsTextPanelHandle = createTextPanel(panel, "0 FPS", cs2::Color{235, 235, 235}).getHandle();
+            state().fpsTextPanelHandle = createTextPanelAndGetHandle(panel, "0 FPS", cs2::Color{235, 235, 235});
             createSeparatorPanel(panel);
-            state().pingTextPanelHandle = createTextPanel(panel, "0 ms", cs2::Color{235, 235, 235}).getHandle();
+            state().pingTextPanelHandle = createTextPanelAndGetHandle(panel, "0 ms", cs2::Color{235, 235, 235});
             createSeparatorPanel(panel);
-            state().timeTextPanelHandle = createTextPanel(panel, "00:00", cs2::Color{235, 235, 235}).getHandle();
+            state().timeTextPanelHandle = createTextPanelAndGetHandle(panel, "00:00", cs2::Color{235, 235, 235});
             return utils::lvalue<decltype(panel)>(panel);
         });
     }
