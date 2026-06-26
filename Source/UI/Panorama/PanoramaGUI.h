@@ -120,6 +120,60 @@ public:
 #include "CreateGUI.js"
 ));
 
+        uiEngine().runScript(settings, R"(
+(function () {
+  const root = $('#OsirisMenuTab');
+  if (!root || root.FindChildInLayoutFile('hud_watermark'))
+    return;
+
+  const hud = root.FindChildInLayoutFile('hud');
+  if (!hud)
+    return;
+
+  const hudContent = hud.FindChildrenWithClassTraverse('SettingsMenuTabContent')[0] || hud;
+
+  const background = $.CreatePanel('Panel', hudContent, '', {
+    class: 'SettingsBackground'
+  });
+
+  const titleContainer = $.CreatePanel('Panel', background, '', {
+    class: 'SettingsSectionTitleContianer'
+  });
+
+  $.CreatePanel('Label', titleContainer, '', {
+    class: 'SettingsSectionTitleLabel',
+    text: 'Watermark'
+  });
+
+  const content = $.CreatePanel('Panel', background, '', {
+    class: 'top-bottom-flow full-width'
+  });
+
+  const row = $.CreatePanel('Panel', content, '', {
+    class: 'SettingsMenuDropdownContainer'
+  });
+
+  $.CreatePanel('Label', row, '', {
+    class: 'half-width',
+    text: 'Show Watermark'
+  });
+
+  const dropdown = $.CreatePanel('CSGOSettingsEnumDropDown', row, 'hud_watermark', {
+    class: 'PopupButton White'
+  });
+
+  dropdown.AddOption($.CreatePanel('Label', dropdown, '0', {
+    value: 0,
+    text: 'Yes'
+  }));
+
+  dropdown.AddOption($.CreatePanel('Label', dropdown, '1', {
+    value: 1,
+    text: 'No'
+  }));
+})();
+)");
+
         uiEngine().runScript(mainMenu, R"(
 (function () {
   $('#JsSettings').FindChildInLayoutFile('OsirisMenuTab').SetParent($('#JsMainMenuContent'));
