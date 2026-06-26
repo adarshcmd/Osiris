@@ -1,9 +1,7 @@
 #pragma once
 
 #include <cstddef>
-#include <cstdio>
 #include <cstdint>
-#include <ctime>
 
 #include <CS2/Classes/Color.h>
 #include <CS2/Classes/Entities/C_BaseEntity.h>
@@ -17,9 +15,23 @@
 #include <GameClient/Panorama/PanoramaUiEngine.h>
 #include <GameClient/Panorama/PanelHandle.h>
 #include <Utils/Lvalue.h>
+#include <Utils/StringBuilder.h>
 
 #include "WatermarkConfigVariables.h"
 #include "WatermarkState.h"
+
+struct WatermarkSystemTime {
+    unsigned short year;
+    unsigned short month;
+    unsigned short dayOfWeek;
+    unsigned short day;
+    unsigned short hour;
+    unsigned short minute;
+    unsigned short second;
+    unsigned short milliseconds;
+};
+
+extern "C" __declspec(dllimport) void __stdcall GetLocalTime(WatermarkSystemTime* systemTime);
 
 template <typename HookContext>
 class Watermark {
@@ -84,26 +96,20 @@ private:
     void createTextPanel(auto&& parentPanel, const char* text, cs2::Color color) const noexcept
     {
         auto&& label = hookContext.panelFactory().createLabelPanel(parentPanel).uiPanel();
-        label.setHeight(cs2::CUILength::pixels(24));
-        label.setFont({
-            .fontFamily = "Stratum2, 'Arial Unicode MS'",
-            .fontSize = 18,
-            .fontWeight = cs2::k_EFontWeightMedium
-        });
-        label.setColor(color);
-        label.setTextShadow({
-            .horizontalOffset = cs2::CUILength::pixels(1),
-            .verticalOffset = cs2::CUILength::pixels(1),
-            .blurRadius = cs2::CUILength::pixels(2),
-            .strength = 2.0f,
-            .color = cs2::Color{0, 0, 0, 180}
-        });
+        setupLabelPanel(label, color);
         label.clientPanel().template as<PanoramaLabel>().setText(text);
     }
 
     [[nodiscard]] cs2::PanelHandle createTextPanelAndGetHandle(auto&& parentPanel, const char* text, cs2::Color color) const noexcept
     {
         auto&& label = hookContext.panelFactory().createLabelPanel(parentPanel).uiPanel();
+        setupLabelPanel(label, color);
+        label.clientPanel().template as<PanoramaLabel>().setText(text);
+        return label.getHandle();
+    }
+
+    void setupLabelPanel(auto&& label, cs2::Color color) const noexcept
+    {
         label.setHeight(cs2::CUILength::pixels(24));
         label.setFont({
             .fontFamily = "Stratum2, 'Arial Unicode MS'",
@@ -118,27 +124,12 @@ private:
             .strength = 2.0f,
             .color = cs2::Color{0, 0, 0, 180}
         });
-        label.clientPanel().template as<PanoramaLabel>().setText(text);
-        return label.getHandle();
     }
 
     void createSeparatorPanel(auto&& parentPanel) const noexcept
     {
         auto&& label = hookContext.panelFactory().createLabelPanel(parentPanel).uiPanel();
-        label.setHeight(cs2::CUILength::pixels(24));
-        label.setFont({
-            .fontFamily = "Stratum2, 'Arial Unicode MS'",
-            .fontSize = 18,
-            .fontWeight = cs2::k_EFontWeightMedium
-        });
-        label.setColor(cs2::Color{0, 102, 255, 150});
-        label.setTextShadow({
-            .horizontalOffset = cs2::CUILength::pixels(1),
-            .verticalOffset = cs2::CUILength::pixels(1),
-            .blurRadius = cs2::CUILength::pixels(2),
-            .strength = 2.0f,
-            .color = cs2::Color{0, 0, 0, 180}
-        });
+        setupLabelPanel(label, cs2::Color{0, 102, 255, 150});
         label.setMargin({
             .marginLeft = cs2::CUILength::pixels(13),
             .marginRight = cs2::CUILength::pixels(13)
@@ -151,9 +142,10 @@ private:
         const auto frameTime = hookContext.globalVars().frametime().valueOr(0.0f);
         const auto fps = frameTime > 0.0f ? static_cast<int>(1.0f / frameTime + 0.5f) : 0;
 
-        char text[16];
-        std::snprintf(text, sizeof(text), "%d FPS", fps);
-        setLabelText(state().fpsTextPanelHandle, text);
+        StringBuilderStorage<16> storage;
+        auto builder = storage.builder();
+        builder.put(fps, " FPS");
+        setLabelText(state().fpsTextPanelHandle, builder.cstring());
     }
 
     void updatePing() const noexcept
@@ -167,23 +159,29 @@ private:
         }
 
         const auto ping = *reinterpret_cast<const std::uint32_t*>(reinterpret_cast<const std::byte*>(controllerEntity) + kControllerPingOffset);
-        char text[16];
-        std::snprintf(text, sizeof(text), "%u ms", ping <= 999 ? ping : 0);
-        setLabelText(state().pingTextPanelHandle, text);
+        StringBuilderStorage<16> storage;
+        auto builder = storage.builder();
+        builder.put(ping <= 999 ? ping : 0, " ms");
+        setLabelText(state().pingTextPanelHandle, builder.cstring());
     }
 
     void updateTime() const noexcept
     {
-        char text[8] = "00:00";
-        const auto now = std::time(nullptr);
-        std::tm localTime{};
-#ifdef _WIN32
-        localtime_s(&localTime, &now);
-#else
-        localtime_r(&now, &localTime);
-#endif
-        std::snprintf(text, sizeof(text), "%02d:%02d", localTime.tm_hour, localTime.tm_min);
-        setLabelText(state().timeTextPanelHandle, text);
+        WatermarkSystemTime localTime{};
+        GetLocalTime(&localTime);
+
+        StringBuilderStorage<8> storage;
+        auto builder = storage.builder();
+        putTwoDigits(builder, localTime.hour);
+        builder.put(':');
+        putTwoDigits(builder, localTime.minute);
+        setLabelText(state().timeTextPanelHandle, builder.cstring());
+    }
+
+    static void putTwoDigits(StringBuilder& builder, unsigned int value) noexcept
+    {
+        builder.put(static_cast<char>('0' + (value / 10) % 10));
+        builder.put(static_cast<char>('0' + value % 10));
     }
 
     void setLabelText(cs2::PanelHandle panelHandle, const char* text) const noexcept
