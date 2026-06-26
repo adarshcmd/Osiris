@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Features/Hud/Watermark/WatermarkConfigVariables.h>
 #include <GameClient/Panorama/PanoramaDropDown.h>
 #include <Platform/Macros/FunctionAttributes.h>
 
@@ -34,13 +35,19 @@ public:
 private:
     [[NOINLINE]] void setDropDownSelectedIndex(auto&& mainMenu, const char* dropDownId, int selectedIndex) const noexcept
     {
-        mainMenu.findChildInLayoutFile(dropDownId).clientPanel().template as<PanoramaDropDown>().setSelectedIndex(selectedIndex);
+        auto&& panel = mainMenu.findChildInLayoutFile(dropDownId);
+        if (panel)
+            panel.clientPanel().template as<PanoramaDropDown>().setSelectedIndex(selectedIndex);
     }
 
     template <typename Handler>
     void initDropDown(auto&& guiPanel, const char* panelId) const
     {
-        auto&& dropDown = guiPanel.findChildInLayoutFile(panelId).clientPanel().template as<PanoramaDropDown>();
+        auto&& panel = guiPanel.findChildInLayoutFile(panelId);
+        if (!panel)
+            return;
+
+        auto&& dropDown = panel.clientPanel().template as<PanoramaDropDown>();
         dropDown.registerSelectionChangedHandler(&GuiEntryPoints<HookContext>::template dropDownSelectionChanged<Handler>);
     }
 
