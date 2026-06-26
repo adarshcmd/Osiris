@@ -6,6 +6,7 @@
 #include <Features/Hud/DefusingAlert/DefusingAlertConfigVariables.h>
 #include <Features/Hud/KillfeedPreserver/KillfeedPreserverConfigVariables.h>
 #include <Features/Hud/PostRoundTimer/PostRoundTimerConfigVariables.h>
+#include <Features/Hud/Watermark/WatermarkConfigVariables.h>
 #include <Features/Sound/SoundVisualizationConfigVariables.h>
 #include <Features/Visuals/ModelGlow/ModelGlowConfigVariables.h>
 #include <Features/Visuals/OutlineGlow/OutlineGlowConfigVariables.h>
@@ -18,6 +19,7 @@ using ConfigVariableTypes = TypeList<
     DefusingAlertEnabled,
     KillfeedPreserverEnabled,
     PostRoundTimerEnabled,
+    HudWatermarkEnabled,
     BombBeepSoundVisualizationEnabled,
     BombDefuseSoundVisualizationEnabled,
     BombPlantSoundVisualizationEnabled,
