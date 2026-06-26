@@ -34,6 +34,7 @@ int SDLHook_PeepEvents(void* events, int numevents, int action, unsigned minType
     hookContext.template make<BombTimer>().onUnload();
     hookContext.template make<DefusingAlert>().onUnload();
     hookContext.template make<PostRoundTimer>().onUnload();
+    hookContext.template make<Watermark>().onUnload();
     hookContext.template make<OutlineGlow>().onUnload();
     hookContext.template make<BombStatusPanel>().onUnload();
     hookContext.template make<InWorldPanels>().onUnload();
@@ -78,6 +79,7 @@ void ViewRenderHook_onRenderStart(cs2::CViewRender* thisptr) noexcept
     hookContext.make<DefusingAlert>().run();
     hookContext.make<KillfeedPreserver>().run();
     hookContext.make<BombStatusPanelManager>().run();
+    hookContext.make<Watermark>().run();
     hookContext.make<InWorldPanels>().hideUnusedPanels();
 
     UnloadFlag unloadFlag;
